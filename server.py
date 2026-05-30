@@ -44,7 +44,7 @@ app.add_middleware(
 # ============================================================================
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-AI_MODEL = "kimi-k2"  # Configurable AI model
+AI_MODEL = "moonshotai/kimi-k2"  # Full provider/model string for OpenRouter
 
 if not OPENROUTER_API_KEY:
     raise ValueError(
@@ -65,6 +65,7 @@ async def root():
         "endpoints": {
             "health": "/health",
             "generate": "/api/generate",
+            "greenhouse": "/api/wyf/greenhouse",
             "frontend": "http://localhost:8000 (served via StaticFiles)"
         }
     }
@@ -81,7 +82,7 @@ async def health():
 
 
 # ============================================================================
-# AI Generation Endpoint
+# AI Generation Endpoint - Primary
 # ============================================================================
 @app.post("/api/generate")
 async def generate(request: dict):
@@ -92,8 +93,30 @@ async def generate(request: dict):
     {
         "prompt": "user prompt",
         "context": "scene/state context",
-        "model": "optional - defaults to kimi-k2"
+        "model": "optional - defaults to moonshotai/kimi-k2"
     }
+    """
+    return await _generate_narrative(request)
+
+
+# ============================================================================
+# AI Generation Endpoint - Greenhouse (Compatibility Route)
+# ============================================================================
+@app.post("/api/wyf/greenhouse")
+async def greenhouse(request: dict):
+    """
+    Generate greenhouse narrative (compatibility route for existing frontend).
+    Routes to the same handler as /api/generate.
+    """
+    return await _generate_narrative(request)
+
+
+# ============================================================================
+# Shared Generation Logic
+# ============================================================================
+async def _generate_narrative(request: dict):
+    """
+    Internal handler for narrative generation.
     """
     try:
         prompt = request.get("prompt")
