@@ -75,7 +75,7 @@ HERMES_MODEL = os.getenv("HERMES_MODEL", "hermes-2-pro-7b")
 
 # Output Configuration
 OUTPUT_AUDIO = os.getenv("OUTPUT_AUDIO", "false").lower() == "true"
-OUTPUT_VIDEO = os.getenv("OUTPUT_VIDEO", "false").lower() == "false"
+OUTPUT_VIDEO = os.getenv("OUTPUT_VIDEO", "false").lower() == "true"
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "./output")
 
 # Create output directories
