@@ -1,6 +1,6 @@
 """
 WYF* (What's Your Fantasy) - AI-Powered Interactive Romance Novel Engine
-FastAPI server with static file serving, CORS support, and OpenRouter AI integration.
+FastAPI server with static file serving, CORS support, and Ollama/OpenRouter AI integration.
 """
 
 import os
@@ -42,15 +42,39 @@ app.add_middleware(
 # ============================================================================
 # Environment Configuration
 # ============================================================================
+AI_PROVIDER = os.getenv("AI_PROVIDER", "ollama").lower()
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-AI_MODEL = "moonshotai/kimi-k2"  # Full provider/model string for OpenRouter
 
-if not OPENROUTER_API_KEY:
-    raise ValueError(
-        "OPENROUTER_API_KEY not found in environment. "
-        "Please create a .env file with OPENROUTER_API_KEY=your_key"
-    )
+# FastAPI Configuration
+FASTAPI_HOST = os.getenv("FASTAPI_HOST", "127.0.0.1")
+FASTAPI_PORT = int(os.getenv("FASTAPI_PORT", 8000))
+FASTAPI_RELOAD = os.getenv("FASTAPI_RELOAD", "true").lower() == "true"
+FASTAPI_LOG_LEVEL = os.getenv("FASTAPI_LOG_LEVEL", "info")
+
+# Model configuration per provider
+if AI_PROVIDER == "ollama":
+    AI_MODEL = os.getenv("OLLAMA_MODEL", "neural-chat")
+    print(f"✓ Using Ollama provider")
+    print(f"  URL: {OLLAMA_BASE_URL}")
+    print(f"  Model: {AI_MODEL}")
+    if not OLLAMA_BASE_URL:
+        raise ValueError(
+            "OLLAMA_BASE_URL not found in environment. "
+            "Please create a .env file with OLLAMA_BASE_URL=http://localhost:11434"
+        )
+elif AI_PROVIDER == "openrouter":
+    AI_MODEL = "moonshotai/kimi-k2"
+    print(f"✓ Using OpenRouter provider")
+    print(f"  Model: {AI_MODEL}")
+    if not OPENROUTER_API_KEY:
+        raise ValueError(
+            "OPENROUTER_API_KEY not found in environment. "
+            "Please create a .env file with OPENROUTER_API_KEY=your_key"
+        )
+else:
+    raise ValueError(f"Unknown AI provider: {AI_PROVIDER}. Use 'ollama' or 'openrouter'")
 
 # ============================================================================
 # Root Endpoint
@@ -62,6 +86,8 @@ async def root():
         "status": "running",
         "app": "WYF* Engine",
         "version": "0.1.0",
+        "ai_provider": AI_PROVIDER,
+        "ai_model": AI_MODEL,
         "endpoints": {
             "health": "/health",
             "generate": "/api/generate",
@@ -76,8 +102,9 @@ async def health():
     """Health check endpoint."""
     return {
         "status": "healthy",
+        "ai_provider": AI_PROVIDER,
         "ai_model": AI_MODEL,
-        "api_configured": bool(OPENROUTER_API_KEY)
+        "api_configured": True
     }
 
 
@@ -87,13 +114,13 @@ async def health():
 @app.post("/api/generate")
 async def generate(request: dict):
     """
-    Generate narrative content using OpenRouter AI.
+    Generate narrative content using configured AI provider.
     
     Expected JSON body:
     {
         "prompt": "user prompt",
         "context": "scene/state context",
-        "model": "optional - defaults to moonshotai/kimi-k2"
+        "model": "optional - uses default configured model"
     }
     """
     return await _generate_narrative(request)
@@ -117,6 +144,7 @@ async def greenhouse(request: dict):
 async def _generate_narrative(request: dict):
     """
     Internal handler for narrative generation.
+    Routes to appropriate AI provider based on configuration.
     """
     try:
         prompt = request.get("prompt")
@@ -129,7 +157,74 @@ async def _generate_narrative(request: dict):
         # Build system message from caretaker persona
         system_message = load_caretaker_prompt()
         
-        # Prepare OpenRouter request
+        if AI_PROVIDER == "ollama":
+            return await _generate_ollama(prompt, context, model, system_message)
+        elif AI_PROVIDER == "openrouter":
+            return await _generate_openrouter(prompt, context, model, system_message)
+        else:
+            raise HTTPException(status_code=500, detail=f"Unknown AI provider: {AI_PROVIDER}")
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Generation error: {str(e)}"
+        )
+
+
+# ============================================================================
+# Ollama Integration
+# ============================================================================
+async def _generate_ollama(prompt: str, context: str, model: str, system_message: str):
+    """
+    Generate narrative using Ollama local AI.
+    """
+    try:
+        payload = {
+            "model": model,
+            "prompt": f"{system_message}\n\nContext: {context}\n\nUser: {prompt}",
+            "stream": False,
+            "temperature": 0.8,
+        }
+        
+        # Call Ollama API
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{OLLAMA_BASE_URL}/api/generate",
+                json=payload,
+                timeout=60.0
+            )
+            response.raise_for_status()
+        
+        data = response.json()
+        
+        return {
+            "success": True,
+            "response": data.get("response", "").strip(),
+            "model": model,
+            "provider": "ollama",
+            "usage": {
+                "prompt_tokens": data.get("prompt_eval_count", 0),
+                "completion_tokens": data.get("eval_count", 0),
+            }
+        }
+    
+    except httpx.HTTPError as e:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Ollama API error: {str(e)}. Ensure Ollama is running at {OLLAMA_BASE_URL}"
+        )
+
+
+# ============================================================================
+# OpenRouter Integration
+# ============================================================================
+async def _generate_openrouter(prompt: str, context: str, model: str, system_message: str):
+    """
+    Generate narrative using OpenRouter cloud AI.
+    """
+    try:
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
             "Content-Type": "application/json",
@@ -161,6 +256,7 @@ async def _generate_narrative(request: dict):
             "success": True,
             "response": data["choices"][0]["message"]["content"],
             "model": data["model"],
+            "provider": "openrouter",
             "usage": data.get("usage", {})
         }
     
@@ -168,11 +264,6 @@ async def _generate_narrative(request: dict):
         raise HTTPException(
             status_code=502,
             detail=f"OpenRouter API error: {str(e)}"
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Generation error: {str(e)}"
         )
 
 
@@ -213,8 +304,8 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         app,
-        host="127.0.0.1",
-        port=8000,
-        reload=True,
-        log_level="info"
+        host=FASTAPI_HOST,
+        port=FASTAPI_PORT,
+        reload=FASTAPI_RELOAD,
+        log_level=FASTAPI_LOG_LEVEL
     )
