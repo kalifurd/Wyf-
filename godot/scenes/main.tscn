@@ -1,0 +1,88 @@
+[gd_scene load_steps=2 format=3 uid="uid=1234567890abcdef"]
+
+[ext_resource type="Script" path="res://scenes/main.gd"]
+
+[node name="WYFDesktopApp" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("res://scenes/main.gd")
+
+[node name="Background" type="ColorRect"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.08, 0.08, 0.12, 1)
+
+[node name="EnvironmentContainer" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 0.6
+
+[node name="CharacterSprite" type="Control"]
+layout_mode = 1
+anchors_left = 0.15
+anchors_top = 0.1
+anchors_right = 0.85
+anchors_bottom = 0.9
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+
+[node name="UIContainer" type="VBoxContainer"]
+anchor_top = 0.6
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 0.0
+
+[node name="RelationshipMeters" type="HBoxContainer"]
+custom_minimum_size = Vector2(0, 80)
+alignment = 1
+
+[node name="ChemistryMeter" type="VBoxContainer"]
+custom_minimum_size = Vector2(150, 0)
+
+[node name="Label" type="Label"]
+text = "Chemistry"
+theme_override_font_sizes/font_size = 12
+
+[node name="ProgressBar" type="ProgressBar"]
+custom_minimum_size = Vector2(150, 20)
+value = 50.0
+step = 1.0
+
+[node name="TrustMeter" type="VBoxContainer"]
+custom_minimum_size = Vector2(150, 0)
+
+[node name="Label" type="Label"]
+text = "Trust"
+theme_override_font_sizes/font_size = 12
+
+[node name="ProgressBar" type="ProgressBar"]
+custom_minimum_size = Vector2(150, 20)
+value = 50.0
+step = 1.0
+
+[node name="ConflictMeter" type="VBoxContainer"]
+custom_minimum_size = Vector2(150, 0)
+
+[node name="Label" type="Label"]
+text = "Conflict"
+theme_override_font_sizes/font_size = 12
+
+[node name="ProgressBar" type="ProgressBar"]
+custom_minimum_size = Vector2(150, 20)
+value = 30.0
+step = 1.0
+
+[node name="ChatContainer" type="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="NarrativeDisplay" type="RichTextLabel"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "The Guide is waiting to tell your story..."
+theme_override_font_sizes/normal_font_size = 14
+
+[node name="ChoicesContainer" type="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 120)
