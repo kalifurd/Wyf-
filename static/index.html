@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WYF* - What's Your Fantasy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 100%);
+            min-height: 100vh;
+            color: #e8d5c4;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #d4a574;
+            padding-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            color: #f4e4c1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #c9a876;
+            font-style: italic;
+            font-size: 1.1em;
+        }
+        
+        .scene-container {
+            background: rgba(20, 40, 30, 0.9);
+            border: 2px solid #8b7355;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .scene-title {
+            color: #d4a574;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #8b7355;
+            padding-bottom: 10px;
+        }
+        
+        .narrative {
+            background: rgba(10, 20, 15, 0.6);
+            padding: 20px;
+            border-left: 4px solid #d4a574;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            line-height: 1.8;
+            font-size: 1.05em;
+        }
+        
+        .input-section {
+            margin-top: 20px;
+        }
+        
+        .input-section label {
+            display: block;
+            margin-bottom: 10px;
+            color: #d4a574;
+            font-weight: bold;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        input[type="text"],
+        textarea {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #8b7355;
+            color: #e8d5c4;
+            border-radius: 4px;
+            font-family: 'Georgia', serif;
+            font-size: 1em;
+        }
+        
+        input[type="text"]::placeholder,
+        textarea::placeholder {
+            color: #8b7355;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #d4a574 0%, #c9a876 100%);
+            color: #1a472a;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        button:hover {
+            background: linear-gradient(135deg, #e8c59f 0%, #dbb8a0 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .status.loading {
+            background: rgba(212, 165, 116, 0.2);
+            color: #d4a574;
+        }
+        
+        .status.success {
+            background: rgba(100, 150, 100, 0.2);
+            color: #90ee90;
+        }
+        
+        .status.error {
+            background: rgba(220, 100, 100, 0.2);
+            color: #ff9999;
+        }
+        
+        .api-status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        
+        .api-status.connected {
+            background: rgba(100, 150, 100, 0.1);
+            color: #90ee90;
+        }
+        
+        .api-status.disconnected {
+            background: rgba(220, 100, 100, 0.1);
+            color: #ff9999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>✦ WYF* ✦</h1>
+            <p class="subtitle">What's Your Fantasy - Interactive Romance Novel Engine</p>
+        </header>
+        
+        <div class="api-status" id="apiStatus">
+            <span id="statusText">Checking API connection...</span>
+        </div>
+        
+        <div class="scene-container">
+            <div class="scene-title">The Victorian Greenhouse</div>
+            
+            <div class="narrative" id="narrativeOutput">
+                <p>The Victorian greenhouse welcomes you. Sunlight filters through panes of glass, casting warm geometric shadows across the marble floor. Exotic plants brush against your shoulders as you walk deeper inside.</p>
+                <p style="margin-top: 15px;">A figure emerges from behind the orchids, eyes meeting yours with an intensity that makes your heart quicken...</p>
+            </div>
+            
+            <div class="input-section">
+                <label for="userPrompt">What do you do?</label>
+                <textarea id="userPrompt" placeholder="Describe your action or response..." maxlength="500"></textarea>
+                
+                <div class="input-group">
+                    <button id="submitBtn" onclick="generateResponse()" type="button">Continue Story</button>
+                </div>
+                
+                <div id="statusMessage"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Check API connection on load
+        window.addEventListener('load', async () => {
+            await checkAPIStatus();
+        });
+        
+        async function checkAPIStatus() {
+            const statusDiv = document.getElementById('apiStatus');
+            const statusText = document.getElementById('statusText');
+            
+            try {
+                const response = await fetch('/health');
+                if (response.ok) {
+                    statusDiv.className = 'api-status connected';
+                    statusText.textContent = '✓ Connected to WYF* Engine';
+                } else {
+                    throw new Error('API returned non-200 status');
+                }
+            } catch (error) {
+                statusDiv.className = 'api-status disconnected';
+                statusText.textContent = '✗ Cannot connect to API. Ensure server is running on localhost:8000';
+                console.error('API health check failed:', error);
+            }
+        }
+        
+        async function generateResponse() {
+            const userPrompt = document.getElementById('userPrompt');
+            const narrativeOutput = document.getElementById('narrativeOutput');
+            const statusMessage = document.getElementById('statusMessage');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            const prompt = userPrompt.value.trim();
+            
+            if (!prompt) {
+                statusMessage.innerHTML = '<div class="status error">Please enter a response or action.</div>';
+                return;
+            }
+            
+            // Show loading state
+            statusMessage.innerHTML = '<div class="status loading">The Caretaker is composing your story...</div>';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        context: narrativeOutput.textContent,
+                        model: 'kimi-k2'
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || `HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Append AI response to narrative
+                const aiResponse = data.response;
+                narrativeOutput.innerHTML += `<p style="margin-top: 15px; color: #d4a574;"><em>${aiResponse}</em></p>`;
+                
+                statusMessage.innerHTML = '<div class="status success">Story continued successfully.</div>';
+                userPrompt.value = '';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                statusMessage.innerHTML = `<div class="status error">Error: ${error.message}</div>`;
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+        
+        // Allow Enter key to submit (but Shift+Enter for new line)
+        document.getElementById('userPrompt').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                generateResponse();
+            }
+        });
+    </script>
+</body>
+</html>
