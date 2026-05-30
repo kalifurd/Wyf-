@@ -1,10 +1,12 @@
 # WYF* - What's Your Fantasy
 
+![WYF Book Cover](https://raw.githubusercontent.com/kalifurd/Wyf-/main/docs/cover.png)
+
 An AI-powered interactive romance novel engine built with FastAPI and OpenRouter's Kimi K2 model.
 
 ## Overview
 
-WYF* is a Victorian-era interactive romance narrative platform where users guide the story through choices and actions, while an AI narrator (the Caretaker) responds dynamically to create an immersive, emotionally engaging experience.
+WYF* is a Victorian-era interactive romance narrative platform where users guide the story through choices and actions, while an AI narrator (the Caretaker) responds dynamically to create an immersive experience.
 
 ## Architecture
 
@@ -137,7 +139,7 @@ See `.env.example` for all available configuration options.
 
 ## License
 
-MIT
+Copyright (c) 2026 TINKER-VERSE LLC. All rights reserved. See LICENSE file for details.
 
 ## Contributing
 
